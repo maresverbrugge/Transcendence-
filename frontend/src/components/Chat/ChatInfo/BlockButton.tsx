@@ -25,7 +25,7 @@ const BlockButton = ({ userID, blockedUserIDs }: BlockButtonProps) => {
     }
   };
 
-  return <button onClick={handleToggleBlock}>{isBlocked ? 'Unblock' : 'Block'}</button>;
+  return <button className='dropdown-item text-primary-emphasis' onClick={handleToggleBlock}>{isBlocked ? 'Unblock' : 'Block'}</button>;
 };
 
 export default BlockButton;

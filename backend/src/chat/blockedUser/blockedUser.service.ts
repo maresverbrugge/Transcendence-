@@ -71,6 +71,6 @@ export class BlockedUserService {
     if (action === 'block') await this.block(targetUserID, userID);
     else await this.unblock(targetUserID, userID);
     const socket = await this.gatewayService.getWebSocketByUserID(userID);
-    if (socket && socket.connected) this.gatewayService.emitToSocket('reloadMessages', socket)
+    if (socket?.connected) this.gatewayService.emitToSocket('reloadMessages', socket)
   }
 }

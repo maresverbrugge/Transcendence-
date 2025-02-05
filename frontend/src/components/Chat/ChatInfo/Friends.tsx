@@ -1,81 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
-import axios from 'axios';
+import { FriendData } from '../interfaces';
 
-import './Friends.css';
-import { MemberData } from '../interfaces';
-import { emitter } from '../../emitter';
+import { useNavigate } from 'react-router-dom';
 
 interface FriendProps {
   key: number;
-  friend: MemberData;
+  friend: FriendData;
   socket: Socket;
 }
 
 interface FriendsProps {
-  friends: MemberData[];
-  setFriends: (friends: MemberData[]) => void;
+  friends: FriendData[];
   socket: Socket;
 }
 
 const Friend = ({ friend, socket }: FriendProps) => {
-  const [status, setStatus] = useState('friend-offline');
+  const [statusColor, setStatusColor] = useState('bg-danger')
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const getStatusClass = (userStatus: string) => {
-      switch (userStatus) {
+
+    const getStatusColor = (userstatus: string) => {
+      switch (userstatus) {
         case 'ONLINE':
-          return 'friend-afk';
-        case 'OFFLINE':
-          return 'friend-offline';
+          return 'warning';
         case 'IN_CHAT':
-          return 'friend-online';
+          return 'success';
         case 'IN_GAME':
-          return 'friend-afk';
+          return 'warning';
+        case 'OFFLINE':
+          return 'danger';
         default:
-          return 'friend-offline';
+          return 'secondary';
       }
     };
 
-    socket.on('userStatusChange', (userID: number, userStatus: string) => {
-      if (friend.ID === userID) setStatus(getStatusClass(userStatus));
+    socket.on('userStatusChange', (userID, userStatus) => {
+      if (userID === friend.ID) {
+        setStatusColor(getStatusColor(userStatus));
+      }
     });
 
-    setStatus(getStatusClass(friend.status));
+    setStatusColor(getStatusColor(friend.status));
 
     return () => {
       socket.off('userStatusChange');
     };
-  }, [friend.ID, friend.status, socket]);
-
-  return <li className={status}>{friend.username}</li>;
-};
-
-const Friends = ({ friends, setFriends, socket }: FriendsProps) => {
-  const token = localStorage.getItem('authenticationToken');
-
-  useEffect(() => {
-    const fetchFriends = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_URL_BACKEND}/chat/friends/${token}`);
-        if (response.data) setFriends(response.data);
-      } catch (error) {
-        emitter.emit('error', error);
-      }
-    };
-
-    fetchFriends();
-  }, [setFriends, socket]);
+  }, [friend, socket]);
 
   return (
-    <div className="friends-container">
-      <h1>Friends</h1>
-      <ul className="friends">
-        {friends.map((friend) => (
-          <Friend key={friend.ID} friend={friend} socket={socket} />
-        ))}
-      </ul>
-    </div>
+    <li key={friend.ID} className="list-item">
+      <div className="d-flex align-items-center">
+        <img
+          src={friend.avatarURL}
+          alt={`${friend.username}'s avatar`}
+          className="rounded-circle"
+          style={{
+            width: '3rem',
+            height: '3rem',
+            objectFit: 'cover',
+          }}
+        />
+          <button
+            onClick={() => navigate(`/profile/${friend.ID}`)}
+            className={`btn bg-${statusColor} p-1 m-2 mt-0 mb-0`}
+            style={{ textDecoration: 'none', width: '70%', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+            {friend.username}
+          </button>
+      </div>
+    </li>
+  );
+};
+
+const Friends = ({ friends, socket }: FriendsProps) => {
+  const token = localStorage.getItem('authenticationToken');
+
+  return (
+    <>
+      <div className="mb-3 text-center">
+        <h2>Friends</h2>
+      </div>
+      <div style={{ flexGrow: 1, overflowY: 'auto'}}>
+        <ul className="friends" style={{ paddingLeft: 0}}>
+          {friends
+            .sort((a, b) => {
+              const statusOrder = { IN_CHAT: 1, ONLINE: 2, IN_GAME: 2, OFFLINE: 3 };
+              return statusOrder[a.status] - statusOrder[b.status];
+            })
+            .map((friend) => (
+              <Friend key={friend.ID} friend={friend} socket={socket} />
+            ))
+          }
+        </ul>
+      </div>
+    </>
   );
 };
 

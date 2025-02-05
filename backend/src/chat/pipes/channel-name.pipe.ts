@@ -7,8 +7,8 @@ export class ChannelNamePipe implements PipeTransform {
       throw new BadRequestException('Channel name must be a string');
     }
 
-    if (name.length > 15) {
-      throw new BadRequestException('Channel name must not exceed 15 characters');
+    if (name.length > 25) {
+      throw new BadRequestException('Channel name must not exceed 25 characters');
     }
 
     return name;

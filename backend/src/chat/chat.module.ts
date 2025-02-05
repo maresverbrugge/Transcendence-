@@ -1,6 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
 
-import { FriendsController } from './friends/friends.controller';
 import { ChannelController } from './channel/channel.controller';
 import { ChannelService } from './channel/channel.service';
 import { UserController } from './blockedUser/blockedUser.controller';
@@ -18,7 +17,7 @@ import { LoginModule } from 'src/authentication/authentication.module';
 import { ChatGateway } from './gateway/chat.gateway';
 
 @Module({
-  controllers: [FriendsController, ChannelController, UserController, MessageController],
+  controllers: [ChannelController, UserController, MessageController],
   providers: [
     ChannelService,
     ChannelMemberService,

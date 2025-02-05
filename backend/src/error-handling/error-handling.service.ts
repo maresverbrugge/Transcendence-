@@ -17,7 +17,7 @@ export class ErrorHandlingService {
             error = new InternalServerErrorException('An unexpected error occurred', error.message);   
         }
         console.error(error)
-        if (socket.connected) {
+        if (socket?.connected) {
             socket.emit('error', error)
         }
     }

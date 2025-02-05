@@ -55,7 +55,7 @@ export class GatewayService {
     async addSocketToRoom(userID: number, channelID: number): Promise<void> {
         const socket = await this.getWebSocketByUserID(userID);
         const user = await this.prisma.user.findUnique({where: {ID: userID}, select: {username: true}});
-        if (socket && socket.connected) this.channelService.joinChannel(channelID, socket, user.username);
+        this.channelService.joinChannel(channelID, socket, user.username);
     }
 
     async getWebSocketByUserID(userID: number): Promise<Socket | null> {
@@ -64,7 +64,7 @@ export class GatewayService {
           if (!user) throw new NotFoundException('User not found');
           const server = this.chatGateway.getServer();
           const socket: Socket = server.sockets.get(user.websocketID);
-          if (! socket || !socket.connected) {
+          if (!socket?.connected) {
             return null;
           }
           return socket;
@@ -80,7 +80,7 @@ export class GatewayService {
     }
 
     emitToSocket(message: string, socket: Socket, body?: any): void {
-        if (socket.connected) {
+        if (socket?.connected) {
           if (body) socket.emit(message, body);
           else socket.emit(message);
         }

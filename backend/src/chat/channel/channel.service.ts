@@ -97,8 +97,8 @@ export class ChannelService {
   
 
   addChannelMemberToChannel(channelID: number, socket: Socket): void {
-    if (socket.connected) {
-        this.gatewayService.emitToRoom('updateChannelMember', String(channelID));
+    this.gatewayService.emitToRoom('updateChannelMember', String(channelID));
+    if (socket?.connected) {
         socket.join(String(channelID));
     }
   }
@@ -150,7 +150,7 @@ export class ChannelService {
   async emitNewPrivateChannel(channel: ChannelWithMembersAndMessages): Promise<void> {
     channel.members.map(async (member) => {
       const socket = await this.gatewayService.getWebSocketByUserID(member.userID);
-      if (socket && socket.connected) {
+      if (socket?.connected) {
         this.addChannelMemberToChannel(channel.ID, socket);
         socket.emit('updateChannel');
       }
@@ -180,9 +180,15 @@ export class ChannelService {
     }
   }
 
+  async hasTooManyChannels(): Promise<boolean> {
+    const channelCount = await this.prisma.channel.count();
+    return channelCount > 20;
+  }
+
   async newChannel(data: newChannelData): Promise<ChannelWithMembersAndMessages> {
     try {
         const ownerID = await this.loginService.getUserIDFromCache(data.token);
+        if (this.hasTooManyChannels()) throw new ForbiddenException('Maximum number of channels reached. Try joining an existing channel.');
         if (data.isDM && (await this.DMExists(ownerID, data.memberIDs))) throw new ForbiddenException('DM already exists');
         const hashedPassword = data.password ? await this.hashingService.hashPassword(data.password) : null;
         const newChannel = await this.prisma.channel.create({
@@ -304,8 +310,9 @@ export class ChannelService {
           select: { isAdmin: true },
         });
         if (!channelMember?.isAdmin) throw new ForbiddenException('You dont have Admin rights');
+        const newMember = await this.channelMemberService.createChannelMember(newMemberData.memberID, newMemberData.channelID);
         await this.gatewayService.addSocketToRoom(newMemberData.memberID, newMemberData.channelID);
-        return this.channelMemberService.createChannelMember(newMemberData.memberID, newMemberData.channelID);
+        return newMember;
     } catch (error) {
       this.errorHandlingService.throwHttpException(error);
     }
@@ -361,7 +368,7 @@ export class ChannelService {
 
   async updateChannel(userID) {
     const socket = await this.gatewayService.getWebSocketByUserID(userID);
-    if (socket && socket.connected) socket.emit('updateChannel');
+    if (socket?.connected) socket.emit('updateChannel');
   }
 
   async isPrivateChannel(channelID: number): Promise<boolean> {

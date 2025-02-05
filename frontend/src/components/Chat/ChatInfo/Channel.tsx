@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 
 import ChannelMemberList from './ChannelMemberList';
-import { ChannelData, MemberData } from '../interfaces';
+import { ChannelData, FriendData } from '../interfaces';
 import { emitter } from '../../emitter';
 
 interface ChannelProps {
   channel: ChannelData;
-  friends: MemberData[];
+  friends: FriendData[];
   socket: Socket;
 }
 
@@ -16,7 +16,7 @@ const Channel = ({ channel, friends, socket }: ChannelProps) => {
 
   useEffect(() => {
     const handleDisconnect = () => {
-      if (channel) {
+      if (channel && !channel.isPrivate) {
         socket.emit('leaveChannel', { channelID: channel.ID, token });
       }
     };
@@ -47,17 +47,18 @@ const Channel = ({ channel, friends, socket }: ChannelProps) => {
   };
 
   return (
-    <div className="channel-container">
-      <div className="channel-header">
-        <h2>Channel: {channel?.name}</h2>
-        <ChannelMemberList
-          channel={channel}
-          friends={friends}
-          socket={socket}
-        />
-      </div>
-      {channel.isPrivate && <button onClick={leaveChannel}>Leave Channel</button>}
-    </div>
+    <>
+      <div className="mb-3 text-center">
+        <h2>{(channel?.name) ? channel.name : `Channel ${channel?.ID}`}</h2>
+      </div >
+      <ChannelMemberList
+        channel={channel}
+        friends={friends}
+        socket={socket}
+      />
+      {channel.isPrivate && <button type="button" className="btn btn-outline-warning" style={{ marginTop: 'auto' }} onClick={leaveChannel}>Leave Channel</button>}
+
+    </>
   );
 };
 

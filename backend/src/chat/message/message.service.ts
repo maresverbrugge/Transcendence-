@@ -45,6 +45,26 @@ export class MessageService {
     return messages;
   }
 
+  async enforceMessageLimit(channelID: number): Promise<void> {
+    const messageCount = await this.prisma.message.count({
+      where: { channelID },
+    });
+  
+    if (messageCount > 80) {
+      const oldestMessage = await this.prisma.message.findFirst({
+        where: { channelID },
+        orderBy: { ID: 'asc' }, // Assuming id is auto-incrementing
+      });
+  
+      if (oldestMessage) {
+        await this.prisma.message.delete({
+          where: { ID: oldestMessage.ID },
+        });
+        console.log(`Deleted oldest message (ID: ${oldestMessage.ID}, message: ${oldestMessage.content}) from channel ${channelID}`);
+      }
+    }
+  }
+
   async createMessage(channelID: number, senderID: number, content: string): Promise<Message> {
     try {
       const sender = await this.prisma.user.findUnique({where: {ID: senderID}, select: {ID:true, username: true, messagesSend: true}});
@@ -57,6 +77,7 @@ export class MessageService {
         },
       });
       await this.prisma.user.update({ where: {ID: sender.ID}, data: {messagesSend: sender.messagesSend + 1}})
+      await this.enforceMessageLimit(channelID);
       return message;
     } catch (error) {
       this.errorHandlingService.throwHttpException(error);
@@ -84,7 +105,7 @@ export class MessageService {
         join: `${username} has joined the channel.`,
         leave: `${username} has left the channel.`,
       };
-      return this.prisma.message.create({
+      return await this.prisma.message.create({
         data: {
           content: actionMessageMap[action],
           senderName: 'actionLog',

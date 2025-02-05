@@ -17,42 +17,49 @@ const AlertMessage = ({ message, onClose }: AlertMessageProps) => {
   useEffect(() => {
     // Focus the alert box when it mounts
     alertBoxRef.current?.focus();
-  }, []);
+  }, [alertBoxRef]);
 
   return (
     <>
       {message && (
         <>
-          {/* Transparent overlay */}
           <div
-            className="alert-overlay"
+            className="d-flex flex-column justify-content-center align-items-center"
             onClick={onClose}
             style={{
               position: "fixed",
               top: 0,
               left: 0,
-              width: "100%",
-              height: "100%",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",  // Transparent black overlay
-              zIndex: 9998,  // Ensure it's below the alert box
-            }}
-          />
-          {/* Alert box */}
-          <div 
-            className="alert alert-dismissible alert-warning"
-            style={{
-              zIndex: 9999,  // Ensure it's above the overlay
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 9999,
             }}
           >
-            <button
-              type="button"
-              className="btn-close"
-              aria-label="Close"
-              onClick={onClose}
-            />
-            <h4 className="alert-heading">Alert!</h4>
-            <p className="mb-0">{message}</p>
+            <div
+              className="alert alert-dismissible alert-warning"
+              onKeyDown={handleKeyDown}
+              ref={alertBoxRef}
+              tabIndex={0} // Make the div focusable
+              style={{
+                zIndex: 10000,
+                maxWidth: "500px",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center",
+              }}
+            >
+              <button
+                type="button"
+                className="btn-close"
+                aria-label="Close"
+                onClick={onClose}
+              />
+              <h4 className="alert-heading">Alert!</h4>
+              <p className="mb-0">{message}</p>
+            </div>
           </div>
+
         </>
       )}
     </>

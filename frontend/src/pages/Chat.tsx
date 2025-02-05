@@ -4,24 +4,25 @@ import { io, Socket } from 'socket.io-client';
 import Channels from '../components/Chat/Channels/Channels';
 import ChatInfo from '../components/Chat/ChatInfo/ChatInfo';
 import Messenger from '../components/Chat/Messenger/Messenger';
-import { MemberData } from '../components/Chat/interfaces';
+import { FriendData } from '../components/Chat/interfaces';
 import axios from 'axios';
-import './Chat.css'
 import { emitter } from '../components/emitter';
-import ReceiveGameInvite from '../components/Chat/ChatInfo/ReceiveGameInvite';
-import { useNavigate } from 'react-router-dom';
+import ReceiveGameInvite from '../components/Chat/ReceiveGameInvite';
+import GoBackButton from '../components/GoBackButton';
+import NewChannel from '../components/Chat/NewChannel';
+import PasswordPrompt from '../components/Chat/PasswordPrompt';
+import Confirm from '../components/Confirm';
+import SendGameInvite from '../components/Chat/SendGameInvite';
+import AddChannelMember from '../components/Chat/AddChannelMember';
 
 const Chat = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [channelID, setChannelID] = useState<number | null>(null);
-  const [friends, setFriends] = useState<MemberData[]>([]);
-  const navigate = useNavigate();
+  const [friends, setFriends] = useState<FriendData[]>([]);
   const token = localStorage.getItem('authenticationToken');
 
   useEffect(() => {
 
-
-      
     const socketIo = io(`${process.env.REACT_APP_URL_BACKEND_WS}/chat`, {
       transports: ["websocket"],
       query: { token },
@@ -46,6 +47,17 @@ const Chat = () => {
 
     setSocket(socketIo);
 
+    const fetchFriends = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_URL_BACKEND}/user/friends/${token}`);
+        if (response.data) setFriends(response.data);
+      } catch (error) {
+        emitter.emit('error', error);
+      }
+    };
+
+    fetchFriends();
+
     return () => {
       emitter.off('selectChannel');
       socketIo.disconnect();
@@ -68,24 +80,23 @@ const Chat = () => {
   if (!socket) return <p>Loading...</p>;
 
   return (
-    <div>
-      <ReceiveGameInvite
-        socket={socket}
-      />
-      <Channels
-        selectedChannelID={channelID}
-        friends={friends}
-        socket={socket}
-      />
-      <Messenger channelID={channelID} socket={socket} />
-      <ChatInfo
-        channelID={channelID}
-        friends={friends}
-        setFriends={setFriends}
-        socket={socket}
-      />
+    <div className="container pt-5">
+      {/* Overlays */}
+      <NewChannel friends={friends} socket={socket}/>
+      <GoBackButton />
+      <ReceiveGameInvite socket={socket}/>
+      <SendGameInvite socket={socket}/>
+      <PasswordPrompt/>
+      <Confirm/>
+      <AddChannelMember friends={friends} socket={socket}/>
+
+      <div className="row g-4" style={{ height: '87%' }}>
+        <Channels selectedChannelID={channelID} socket={socket}/>
+        <Messenger channelID={channelID} socket={socket}/>
+        <ChatInfo channelID={channelID} friends={friends} socket={socket}/>
+      </div>
     </div>
-  );
+  );  
 };
 
 export default Chat;

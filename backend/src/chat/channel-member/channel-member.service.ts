@@ -10,7 +10,7 @@ import { ErrorHandlingService } from 'src/error-handling/error-handling.service'
 import { GatewayService } from '../gateway/gateway.service';
 
 type ChannelMemberResponse = ChannelMember & {
-  user: Pick<User, 'ID' | 'username' | 'websocketID'>;
+  user: Pick<User, 'ID' | 'username' | 'status' | 'websocketID'>;
 };
 
 type action = 'demote' | 'makeAdmin' | 'mute' | 'kick' | 'ban' | 'join' | 'leave';
@@ -35,7 +35,7 @@ export class ChannelMemberService {
         const channelMember = await this.prisma.channelMember.findUnique({
           where: { ID: channelMemberID },
           include: {
-            user: { select: { ID: true, websocketID: true, username: true } },
+            user: { select: { ID: true, websocketID: true, username: true, status: true } },
           },
         });
         if (!channelMember) throw new NotFoundException('Channel member not found');
@@ -55,7 +55,7 @@ export class ChannelMemberService {
           include: {
             members: {
               include: {
-                user: { select: { ID: true, username: true, websocketID: true } },
+                user: { select: { ID: true, username: true, status: true, websocketID: true } },
               },
             },
           },
@@ -93,7 +93,7 @@ export class ChannelMemberService {
             channelID: channelID,
           },
           include: {
-            user: { select: { ID: true, websocketID: true, username: true } },
+            user: { select: { ID: true, websocketID: true, username: true, status: true } },
           },
         });
         if (!channelMember) throw new NotFoundException('ChannelMember not found');
@@ -155,7 +155,7 @@ export class ChannelMemberService {
           where: { ID: memberID },
           data: updateData,
           include: {
-            user: { select: { ID: true, websocketID: true, username: true } },
+            user: { select: { ID: true, websocketID: true, username: true, status: true } },
           },
         });
     } catch (error) {

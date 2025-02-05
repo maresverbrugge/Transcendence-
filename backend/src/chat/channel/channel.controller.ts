@@ -23,7 +23,7 @@ type ChannelWithMembersAndMessages = ChannelResponse & {
 };
 
 type ChannelMemberResponse = ChannelMember & {
-  user: Pick<User, 'ID' | 'username' | 'websocketID'>;
+  user: Pick<User, 'ID' | 'username' | 'status' | 'websocketID'>;
 };
 
 type newChannelData = {

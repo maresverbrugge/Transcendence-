@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
-import './Messenger.css';
 import axios from 'axios';
 import { emitter } from '../../emitter';
 
@@ -15,6 +14,13 @@ const Messenger = ({ channelID, socket }: MessengerProps) => {
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [newMessage, setNewMessage] = useState<string>('');
   const token = localStorage.getItem('authenticationToken');
+  const messageListRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -79,39 +85,67 @@ const Messenger = ({ channelID, socket }: MessengerProps) => {
   };
 
   return (
-    <div className="messenger-container">
-      {!channelID ? (
-        <div className="select-channel-message">Select a channel to start chatting!</div>
-      ) : (
-        <>
-          <div className="message-list">
-            <ul>
-              {messages?.map((message) => (
-                <li key={message.ID}>
-                  {message.senderID && message.senderName ? (
-                    <>
-                      <strong>{message.senderName}: </strong>
-                      {message.content}
-                    </>
-                  ) : (
-                    <em>{message.content}</em>
-                  )}
-                </li>
-              ))}
-            </ul>
+    <div className="col-12 col-sm-12 col-md-6 p-3 pt-0 pb-0" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="card shadow h-100">
+        <div className="card-body p-3 pb-2" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="messenger-container" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {!channelID ? (
+                <div className="select-channel-message text-center"><h5>Select a channel to start chatting!</h5></div>
+              ) : (
+                <>
+                  {/* Message List */}
+                  <div
+                    className="message-list"
+                    style={{ flexGrow: 1, overflowY: 'auto', marginBottom: '1rem' }}
+                    ref={messageListRef}
+                  >
+                    {(!messages || messages.length === 0) ? (
+                      <div className="text-center"><h5>No messages yet.</h5><h6>Send the first one!</h6></div>
+                    ) : (
+                      <ul style={{ listStyleType: 'none', paddingLeft: 0 }}>
+                        {messages?.map((message) => (
+                          <li key={`message${message.ID}`}>
+                            {message.senderID && message.senderName ? (
+                              <>
+                                <strong>{message.senderName}: </strong>
+                                {message.content}
+                              </>
+                            ) : (
+                              <em>{message.content}</em>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+      
+                  {/* Messenger Input */}
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Type your message..."
+                      aria-label="Recipient's username"
+                      aria-describedby="button-addon2"
+                    />
+                    <button
+                      className="btn btn-primary"
+                      type="button"
+                      onClick={handleSendMessage}
+                    >
+                      Send
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-          <div className="messenger-input">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-            />
-            <button onClick={handleSendMessage}>Send</button>
-          </div>
-        </>
-      )}
+        </div>
+      </div>  
     </div>
   );
 };

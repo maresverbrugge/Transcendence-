@@ -19,9 +19,15 @@ export interface MemberData {
   isOwner: boolean;
   isAdmin: boolean;
   isBanned: boolean;
-  user: { ID: number; username: string };
-  status: 'ONLINE' | 'OFFLINE' | 'IN_GAME' | 'AFK';
+  user: { ID: number; username: string; status: string; };
   channelID: string;
+}
+
+export interface FriendData {
+  ID: number;
+  username: string;
+  avatarURL: string;
+  status : string;
 }
 
 export interface MessageData {
