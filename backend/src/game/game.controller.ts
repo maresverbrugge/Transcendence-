@@ -14,7 +14,7 @@ export class GameController {
     @Param('token') token: string,
     @Param('userid2') userid2: number) {
       const userid1: number = await this.login.getUserIDFromCache(token);
-      const game = await this.game.createGame(userid1, userid2);
+      const game = await this.game.createGame(userid1, userid2, token);
 	  if (game == null)
 		throw new InternalServerErrorException('Error starting the game');
   }

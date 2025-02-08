@@ -14,9 +14,9 @@ const Game = () => {
   useEffect(() => {
 
     // Initialize socket connection
-    const socketIo: Socket = io(`${process.env.REACT_APP_URL_BACKEND}/matchmaking`, { // localhost veranderen naar react_app_var
-      transports: ['websocket', 'polling'],
-      query: { token }, // Hier de token uit localstorage halen
+    const socketIo: Socket = io(`${process.env.REACT_APP_URL_BACKEND_WS}/matchmaking`, { // localhost veranderen naar react_app_var
+      transports: ["websocket"],
+      query: { token },
 	  withCredentials: true,
     });
 
@@ -24,16 +24,16 @@ const Game = () => {
       setJoinedGame(true);
     });
 
-	socketIo.on('error', (gameID: number) => {
-		// emitter.emit('error', error);
-	  });
+	// socketIo.on('error', (gameID: number) => {
+	// 	emitter.emit('error', error);
+	//   });
 
     // Set socket instance in state
     setSocket(socketIo);
 
     return () => {
       socketIo.off('newGame');
-      socketIo.off('token');
+    //   socketIo.off('error');
       socketIo.disconnect(); // Disconnect the socket when the component unmounts
     };
   }, []);

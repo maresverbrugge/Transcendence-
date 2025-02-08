@@ -8,7 +8,7 @@ const MainPage = () => {
   return (
     <div>
       <h1>Welcome to the Main Page</h1>
-      <button onClick={() => navigate('/game')}>Go to Game</button>
+      <button onClick={() => navigate('/queue')}>Go to Game</button>
       <button onClick={() => navigate('/chat')}>Go to Chat</button>
       <button onClick={() => navigate('/leaderboard')}>Go to Leaderboard</button>
       <button onClick={() => navigate('/profile')}>My Account</button>
