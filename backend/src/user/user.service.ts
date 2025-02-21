@@ -88,6 +88,25 @@ export class UserService {
     }
   }
 
+  async getSocketIDByUserID(userID: number, token: string): Promise<string> {
+    const currentUserID = await this.loginService.getUserIDFromCache(token);
+
+    try {
+      const user = await this.prisma.user.findUnique({
+      where: { ID: userID },
+      select: {
+        websocketID: true,
+      },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user.websocketID;
+    } catch (error) {
+      this.errorHandlingService.throwHttpException(error);
+    }
+  }
+
   async updateUsername(token: string, newUsername: string): Promise<User> {
     const userID = await this.loginService.getUserIDFromCache(token);
 
@@ -169,13 +188,13 @@ export class UserService {
         return {
           opponentID: opponent?.ID ?? -1,
           opponent: opponent?.username ?? 'Unknown',
-          scorePlayer1: isPlayer1 ? match.scorePlayer1 : match.scorePlayer2,
-          scorePlayer2: isPlayer1 ? match.scorePlayer2 : match.scorePlayer1,
+          scoreLeft: isPlayer1 ? match.scoreLeft : match.scoreRight,
+          scoreRight: isPlayer1 ? match.scoreRight : match.scoreLeft,
           result: isPlayer1
-          ? match.scorePlayer1 > match.scorePlayer2
+          ? match.scoreLeft > match.scoreRight
             ? 'Win'
             : 'Loss'
-          : match.scorePlayer2 > match.scorePlayer1
+          : match.scoreRight > match.scoreLeft
           ? 'Win'
           : 'Loss',
         };
@@ -253,18 +272,6 @@ export class UserService {
       this.errorHandlingService.throwHttpException(error);
     }
   }
-
-	async getSocketIDByUserID(userID: number): Promise<string | null> {
-        const user = await this.prisma.user.findUnique({
-          where: {
-            ID: userID,
-          },
-          select: {
-            websocketID: true,
-          },
-        });
-        return user?.websocketID || null; // Return the user's websocketID if found, otherwise return null
-      }
 
   async toggleFriendship(token: string, targetUserID: number): Promise<string> {
     const userID = await this.loginService.getUserIDFromCache(token);

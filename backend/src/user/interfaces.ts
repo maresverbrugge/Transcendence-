@@ -44,8 +44,8 @@ export interface LeaderboardData {
 export interface MatchHistoryData {
   opponentID: number;
   opponent: string;
-  scorePlayer1: number;
-  scorePlayer2: number;
+  scoreLeft: number;
+  scoreRight: number;
   result: string;
 }
 
@@ -58,8 +58,8 @@ export interface AchievementData {
 
 export interface Match {
   players: { ID: number; username: string }[];
-  scorePlayer1: number;
-  scorePlayer2: number;
+  scoreLeft: number;
+  scoreRight: number;
   status: MatchStatus;
 }
 

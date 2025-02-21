@@ -32,7 +32,7 @@ model User {
   username          String
   intraUsername     String        @unique
   avatar            Bytes?
-  Enabled2FA        Boolean
+  Enabled2FA        Boolean	
   token             String?
   websocketID       String?       @unique// The ID of the websocket, nullable
   status            UserStatus  // ONLINE | OFFLINE | IN_GAME | IN_CHAT
